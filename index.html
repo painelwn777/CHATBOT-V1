@@ -13,6 +13,8 @@
 --fundo: #e5ddd5;
 --texto: #000;
 --branco: #fff;
+--cinza-entregue: #8696a0;
+--azul-visto: #34b7f1;
 }
 @media (prefers-color-scheme: dark) {
 :root {
@@ -23,7 +25,7 @@
 --branco: #1e1e1e;
 }
 }
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; overflow: hidden; }
 body { background: var(--fundo); min-height: 100vh; display: flex; justify-content: center; }
 .chat-container { width: 100%; max-width: 420px; height: 100vh; height: 100dvh; background: var(--branco); display: flex; flex-direction: column; position: relative; }
@@ -32,14 +34,23 @@ body { background: var(--fundo); min-height: 100vh; display: flex; justify-conte
 .chat-header h3 { font-size: 16px; }
 .chat-header small { font-size: 12px; opacity: 0.9; }
 .header-info { flex: 1; }
-.messages { flex: 1; padding: 15px; overflow-y: auto; overflow-x: hidden; background: var(--fundo); -webkit-overflow-scrolling: touch; }
-.message { max-width: 80%; padding: 8px 12px; border-radius: 18px; margin-bottom: 12px; font-size: 14.5px; word-wrap: break-word; }
+.messages { flex: 1; padding: 15px; overflow-y: auto; overflow-x: hidden; background: var(--fundo); -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+.messages::-webkit-scrollbar { width: 6px; }
+.messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+.message { max-width: 80%; padding: 8px 12px; border-radius: 18px; margin-bottom: 12px; font-size: 14.5px; word-wrap: break-word; animation: popIn 0.3s ease; }
+@keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 .received { background: var(--branco); align-self: flex-start; }
 .sent { background: var(--verde-claro); align-self: flex-end; margin-left: auto; }
-.message small { font-size: 11px; color: #999; display: block; text-align: right; margin-top: 4px; }
+.message small { font-size: 11px; color: var(--cinza-entregue); display: block; text-align: right; margin-top: 4px; }
+.status-icon { font-size: 10px; }
+.status-icon.read { color: var(--azul-visto); }
+.typing-indicator { align-self: flex-start; background: var(--branco); padding: 10px 15px; border-radius: 18px; border-top-left-radius: 0; margin-bottom: 10px; display: none; animation: popIn 0.3s ease; }
+.typing-indicator span { display: inline-block; width: 6px; height: 6px; background: var(--cinza-entregue); border-radius: 50%; animation: typing 1.4s infinite; margin: 0 2px; }
+.typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+.typing-indicator span:nth-child(2) { animation-delay: -0.16s; }@keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
 .action-buttons { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 .btn-action { padding: 12px 18px; border-radius: 24px; border: none; cursor: pointer; font-weight: 600; font-size: 14px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.btn-chatbot { background: var(--laranja, #ff9800); color: #fff; }
+.btn-chatbot { background: #ff9800; color: #fff; }
 .btn-atendente { background: var(--azul-whats); color: #fff; }
 .audio-container { display: flex; flex-direction: column; gap: 6px; }
 .audio-player { display: flex; align-items: center; gap: 10px; padding: 8px; background: rgba(0,0,0,0.05); border-radius: 12px; min-width: 220px; }
@@ -47,7 +58,8 @@ body { background: var(--fundo); min-height: 100vh; display: flex; justify-conte
 .audio-btn.playing { background: var(--verde-btn); }
 .audio-wave { flex: 1; display: flex; gap: 3px; height: 30px; align-items: center; }
 .wave-bar { width: 3px; background: var(--verde-whats); border-radius: 2px; }
-.audio-time { font-size: 12px; color: #666; min-width: 45px; text-align: right; }.audio-speed { display: flex; gap: 4px; justify-content: flex-end; }
+.audio-time { font-size: 12px; color: #666; min-width: 45px; text-align: right; }
+.audio-speed { display: flex; gap: 4px; justify-content: flex-end; }
 .speed-btn { padding: 2px 8px; border: 1px solid var(--verde-whats); background: transparent; color: var(--verde-whats); border-radius: 12px; font-size: 11px; cursor: pointer; }
 .speed-btn.active { background: var(--verde-whats); color: #fff; }
 .media-message img, .media-message video { max-width: 100%; border-radius: 12px; }
@@ -58,8 +70,9 @@ body { background: var(--fundo); min-height: 100vh; display: flex; justify-conte
 .file-size { font-size: 11px; color: #666; }
 .btn-download { padding: 6px 12px; border-radius: 12px; background: var(--verde-whats); color: #fff; text-decoration: none; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
 .input-area { display: flex; padding: 10px; background: #f0f0f0; gap: 8px; align-items: center; flex-shrink: 0; min-height: 65px; }
-.input-area input { flex: 1; border: none; padding: 12px; border-radius: 24px; outline: none; font-size: 15px; }
-.input-area button { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.input-area input { flex: 1; border: none; padding: 12px; border-radius: 24px; outline: none; font-size: 15px; background: #fff; }
+.input-area button { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.2s; }
+.input-area button:active { transform: scale(0.95); }
 .btn-attach { background: #666; color: #fff; }
 .btn-mic { background: var(--verde-whats); color: #fff; }
 .btn-mic.recording { background: #f44336; animation: pulse 1s infinite; }
@@ -83,20 +96,22 @@ body { background: var(--fundo); min-height: 100vh; display: flex; justify-conte
 <script src="config.js"></script>
 <div class="chat-container">
 <div class="chat-header">
-<img src="imagens/perfil.jpg" alt="Perfil" class="profile-photo" id="profile-photo">
-<div class="header-info">
+<img src="imagens/perfil.jpg" alt="Perfil" class="profile-photo" id="profile-photo"><div class="header-info">
 <h3 id="header-name">PAINEL WN 777</h3>
 <small id="status">online</small>
 </div>
 </div>
-<div class="messages" id="messages"></div>
+<div class="messages" id="messages">
+<div class="typing-indicator" id="typing-indicator"><span></span><span></span><span></span></div>
+</div>
 <div class="input-area">
 <button class="btn-attach" onclick="document.getElementById('file-input').click()" title="Enviar arquivo">
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
 <polyline points="17 8 12 3 7 8"></polyline>
 <line x1="12" y1="3" x2="12" y2="15"></line>
-</svg></button>
+</svg>
+</button>
 <input type="file" id="file-input" accept="image/*,video/*,.apk,.zip,.rar,.pdf" style="display:none" onchange="enviarArquivo(event)">
 <button class="btn-mic" id="mic-btn" onclick="toggleRecording()" title="Gravar áudio">
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -122,50 +137,236 @@ const MEU_TOKEN = window.CONFIG?.telegramToken || '';
 const MEU_CHAT_ID = window.CONFIG?.telegramChatId || '';
 const MSG = window.CONFIG?.mensagens || {};
 
-let idConversa = localStorage.getItem('id_conv_chat') || 'conv_' + Date.now();
-localStorage.setItem('id_conv_chat', idConversa);
+let idConversa = localStorage.getItem('wn777_id_conv') || 'conv_' + Date.now();
+localStorage.setItem('wn777_id_conv', idConversa);
 
+let nomeLead = localStorage.getItem('wn777_nome_' + idConversa) || '';
+let atendimentoAtivo = localStorage.getItem('wn777_ativo_' + idConversa) === 'true';
+let lastUpdateId = parseInt(localStorage.getItem('wn777_last_update') || '0');
+let pollingAtivo = false;
+
+let messageHistory = JSON.parse(localStorage.getItem('wn777_history_' + idConversa) || '[]');
 document.getElementById('header-name').textContent = BOT_NAME;
 document.getElementById('profile-photo').src = BOT_PHOTO;
-
-let nomeLead = '';
-let atendimentoAtivo = false;
-let lastUpdateId = 0;
-let pollingAtivo = false;
 
 let mediaRecorder = null;
 let audioChunks = [];
 
-function scrollToBottom() {
+function scrollToBottom(smooth = true) {
+    setTimeout(() => {
+        const messages = document.getElementById('messages');
+        messages.scrollTo({ top: messages.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+    }, 50);
+}
+
+function saveHistory() {
+    localStorage.setItem('wn777_history_' + idConversa, JSON.stringify(messageHistory));
+    localStorage.setItem('wn777_nome_' + idConversa, nomeLead);
+    localStorage.setItem('wn777_ativo_' + idConversa, atendimentoAtivo);
+    localStorage.setItem('wn777_last_update', lastUpdateId);
+}
+
+function limparConversa() {
+    messageHistory = [];
+    localStorage.removeItem('wn777_history_' + idConversa);
     const messages = document.getElementById('messages');
-    messages.scrollTop = messages.scrollHeight;
+    const typing = document.getElementById('typing-indicator');
+    messages.innerHTML = '';
+    messages.appendChild(typing);
+    addMessage('💬 Conversa limpa com sucesso!', false, true);
+}
+
+function loadHistory() {
+    if (messageHistory.length > 0) {
+        messageHistory.forEach(msg => {
+            if (msg.type === 'audio') {
+                addAudioMessage(msg.content, msg.sent, true);
+            } else if (msg.type === 'image') {
+                addImageMessage(msg.content, msg.sent, true);
+            } else if (msg.type === 'file') {
+                const parts = msg.content.split('|');
+                addFileMessage(parts[0], parts[1], msg.sent, true);
+            } else {
+                addMessage(msg.content, msg.sent, true, msg.status);
+            }
+        });
+        scrollToBottom(false);
+    }
+}
+
+function addMessage(texto, enviado, html = false, status = 'sent', save = true) {    const msg = document.createElement('div');
+    msg.className = 'message ' + (enviado ? 'sent' : 'received');
+    
+    let statusIcon = '';
+    if (enviado) {
+        if (status === 'read') statusIcon = '<span class="status-icon read">✓✓</span>';
+        else if (status === 'delivered') statusIcon = '<span class="status-icon">✓✓</span>';
+        else statusIcon = '<span class="status-icon">✓</span>';
+    }
+
+    const timeStr = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    
+    if (html) {
+        msg.innerHTML = texto + '<small>' + timeStr + ' ' + statusIcon + '</small>';
+    } else {
+        const safeText = texto.replace(/</g, "<").replace(/>/g, ">");
+        msg.innerHTML = safeText + '<small>' + timeStr + ' ' + statusIcon + '</small>';
+    }
+
+    const typing = document.getElementById('typing-indicator');
+    document.getElementById('messages').insertBefore(msg, typing);
+    scrollToBottom();
+
+    if (save) {
+        messageHistory.push({ content: texto, sent: enviado, type: 'text', status: status, time: Date.now() });
+        saveHistory();
+        
+        if (enviado) {
+            setTimeout(() => updateMessageStatus(msg, 'delivered'), 1000);
+            setTimeout(() => updateMessageStatus(msg, 'read'), 3000);
+        }
+    }
+}
+
+function updateMessageStatus(msgElement, status) {
+    const small = msgElement.querySelector('small');
+    const icon = small?.querySelector('.status-icon');
+    if (!icon) return;
+
+    if (status === 'delivered') {
+        icon.textContent = '✓✓';
+        icon.classList.remove('read');
+    } else if (status === 'read') {
+        icon.textContent = '✓✓';
+        icon.classList.add('read');
+    }
+}
+
+function showTyping(show) {
+    const typing = document.getElementById('typing-indicator');    typing.style.display = show ? 'block' : 'none';
+    if (show) scrollToBottom();
 }
 
 async function enviarTelegram(tipo, mensagem) {
     if (!MEU_TOKEN || !MEU_CHAT_ID) return;
     const texto = `🆔 ${idConversa}\n👤 ${nomeLead || 'Anônimo'}\n🏷️ ${tipo}\n📝 ${mensagem}`;
     const url = `https://api.telegram.org/bot${MEU_TOKEN}/sendMessage?chat_id=${MEU_CHAT_ID}&text=${encodeURIComponent(texto)}`;
-    try {        const res = await fetch(url);
+    try {
+        const res = await fetch(url);
         return await res.json();
     } catch (e) { return false; }
 }
 
-function addMessage(texto, enviado, html) {
-    const msg = document.createElement('div');
-    msg.className = 'message ' + (enviado ? 'sent' : 'received');
-    if (html) {
-        msg.innerHTML = texto + '<small>' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + (enviado ? ' ✓' : '') + '</small>';
+window.enviarArquivo = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const fileSize = (file.size / 1024 / 1024).toFixed(2);
+    const fileName = file.name;
+
+    if (file.type.startsWith('image')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            addImageMessage(e.target.result, true, true);
+            if (atendimentoAtivo) enviarFileTelegram(file, 'photo', 'FOTO');
+        };
+        reader.readAsDataURL(file);
+    } else if (file.type.startsWith('video')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const msg = document.createElement('div');
+            msg.className = 'message sent';
+            msg.innerHTML = '<div class="media-message"><video controls src="' + e.target.result + '"></video></div><small>' + new Date().toLocaleTimeString() + ' <span class="status-icon">✓</span></small>';
+            const typing = document.getElementById('typing-indicator');
+            document.getElementById('messages').insertBefore(msg, typing);
+            scrollToBottom();
+            messageHistory.push({ content: e.target.result, sent: true, type: 'video', status: 'sent', time: Date.now() });
+            saveHistory();
+            if (atendimentoAtivo) enviarFileTelegram(file, 'video', 'VÍDEO');
+        };
+        reader.readAsDataURL(file);
     } else {
-        msg.textContent = texto;
-        const small = document.createElement('small');
-        small.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + (enviado ? ' ✓' : '');
-        msg.appendChild(small);
+        addFileMessage(fileName, fileSize, true, true);
+        if (atendimentoAtivo) enviarFileTelegram(file, 'document', 'ARQUIVO');
     }
-    document.getElementById('messages').appendChild(msg);
+    document.getElementById('file-input').value = '';
+};
+
+function addImageMessage(url, enviado, save = false) {
+    const msg = document.createElement('div');    msg.className = 'message sent';
+    msg.innerHTML = '<div class="media-message"><img src="' + url + '"></div><small>' + new Date().toLocaleTimeString() + ' <span class="status-icon">✓</span></small>';
+    const typing = document.getElementById('typing-indicator');
+    document.getElementById('messages').insertBefore(msg, typing);
     scrollToBottom();
+    if (save) {
+        messageHistory.push({ content: url, sent: enviado, type: 'image', status: 'sent', time: Date.now() });
+        saveHistory();
+    }
 }
 
-function addAudioMessage(url, enviado) {
+function addFileMessage(fileName, fileSize, enviado, save = false) {
+    const msg = document.createElement('div');
+    msg.className = 'message sent';
+    let fileIcon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>';
+    if (fileName.endsWith('.apk')) {
+        fileIcon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
+    }
+    msg.innerHTML = '<div class="file-message"><div class="file-icon">' + fileIcon + '</div><div class="file-info"><div class="file-name">' + fileName + '</div><div class="file-size">' + fileSize + ' MB</div></div></div><small>' + new Date().toLocaleTimeString() + ' <span class="status-icon">✓</span></small>';
+    const typing = document.getElementById('typing-indicator');
+    document.getElementById('messages').insertBefore(msg, typing);
+    scrollToBottom();
+    if (save) {
+        messageHistory.push({ content: fileName + '|' + fileSize, sent: enviado, type: 'file', status: 'sent', time: Date.now() });
+        saveHistory();
+    }
+}
+
+async function enviarFileTelegram(file, type, label) {
+    const formData = new FormData();
+    formData.append('chat_id', MEU_CHAT_ID);
+    formData.append(type, file);
+    formData.append('caption', `🆔 ${idConversa}\n👤 ${nomeLead || 'Anônimo'}\n🏷️ ${label}`);
+    fetch(`https://api.telegram.org/bot${MEU_TOKEN}/send${type.charAt(0).toUpperCase() + type.slice(1)}`, { method: 'POST', body: formData });
+}
+
+window.setSpeed = function(audioId, speed) {
+    const audio = document.getElementById(audioId);
+    if (audio) {
+        audio.playbackRate = speed;
+        event.target.parentElement.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+};
+
+window.toggleRecording = async function() {
+    const btn = document.getElementById('mic-btn');
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        btn.classList.remove('recording');        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        addAudioMessage(audioUrl, true, true);
+        if (atendimentoAtivo) {
+            const formData = new FormData();
+            formData.append('chat_id', MEU_CHAT_ID);
+            formData.append('audio', audioBlob, 'audio.webm');
+            formData.append('caption', `🆔 ${idConversa}\n👤 ${nomeLead || 'Anônimo'}\n🏷️ ÁUDIO`);
+            fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/sendAudio', { method: 'POST', body: formData });
+        }
+        mediaRecorder = null;
+    } else {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+            audioChunks = [];
+            mediaRecorder.ondataavailable = function(event) { if (event.data.size > 0) audioChunks.push(event.data); };
+            mediaRecorder.start(1000);
+            btn.classList.add('recording');
+            btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
+        } catch (err) { alert('Permita acesso ao microfone!'); }
+    }
+};
+
+function addAudioMessage(url, enviado, save = false) {
     const msg = document.createElement('div');
     msg.className = 'message ' + (enviado ? 'sent' : 'received');
     const audioId = 'audio_' + Date.now();
@@ -189,12 +390,10 @@ function addAudioMessage(url, enviado) {
     time.textContent = '0:00';
     const speed = document.createElement('div');
     speed.className = 'audio-speed';
-    speed.innerHTML = '<button class="speed-btn active" onclick="setSpeed(\'' + audioId + '\', 1)">1x</button>' +
-        '<button class="speed-btn" onclick="setSpeed(\'' + audioId + '\', 1.5)">1.5x</button>' +
-        '<button class="speed-btn" onclick="setSpeed(\'' + audioId + '\', 2)">2x</button>';
-    player.appendChild(btn);
+    speed.innerHTML = '<button class="speed-btn active" onclick="setSpeed(\'' + audioId + '\', 1)">1x</button><button class="speed-btn" onclick="setSpeed(\'' + audioId + '\', 1.5)">1.5x</button><button class="speed-btn" onclick="setSpeed(\'' + audioId + '\', 2)">2x</button>';    player.appendChild(btn);
     player.appendChild(wave);
-    player.appendChild(time);    container.appendChild(player);
+    player.appendChild(time);
+    container.appendChild(player);
     container.appendChild(speed);
     msg.appendChild(container);
     const audio = new Audio(url);
@@ -223,161 +422,37 @@ function addAudioMessage(url, enviado) {
     };
     document.body.appendChild(audio);
     const small = document.createElement('small');
-    small.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + (enviado ? ' ✓' : '');
+    small.innerHTML = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + (enviado ? ' <span class="status-icon">✓</span>' : '');
     msg.appendChild(small);
-    document.getElementById('messages').appendChild(msg);
+    const typing = document.getElementById('typing-indicator');
+    document.getElementById('messages').insertBefore(msg, typing);
     scrollToBottom();
+    if (save) {
+        messageHistory.push({ content: url, sent: enviado, type: 'audio', status: 'sent', time: Date.now() });
+        saveHistory();
+    }
 }
 
-window.setSpeed = function(audioId, speed) {
-    const audio = document.getElementById(audioId);
-    if (audio) {
-        audio.playbackRate = speed;
-        event.target.parentElement.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
-    }
-};
-
-window.enviarArquivo = function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const fileSize = (file.size / 1024 / 1024).toFixed(2);
-    const fileName = file.name;
-    if (file.type.startsWith('image')) {        const reader = new FileReader();
-        reader.onload = function(e) {
-            const url = e.target.result;
-            const msg = document.createElement('div');
-            msg.className = 'message sent';
-            msg.innerHTML = '<div class="media-message"><img src="' + url + '"></div>' +
-                '<small>' + new Date().toLocaleTimeString() + ' ✓</small>';
-            document.getElementById('messages').appendChild(msg);
-            scrollToBottom();
-            if (atendimentoAtivo) {
-                const formData = new FormData();
-                formData.append('chat_id', MEU_CHAT_ID);
-                formData.append('photo', file);
-                formData.append('caption', `🆔 ${idConversa}\n👤 ${nomeLead || 'Anônimo'}\n📷 FOTO`);
-                fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/sendPhoto', { method: 'POST', body: formData });
-            }
-        };
-        reader.readAsDataURL(file);
-    } else if (file.type.startsWith('video')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const url = e.target.result;
-            const msg = document.createElement('div');
-            msg.className = 'message sent';
-            msg.innerHTML = '<div class="media-message"><video controls src="' + url + '"></video></div>' +
-                '<small>' + new Date().toLocaleTimeString() + ' ✓</small>';
-            document.getElementById('messages').appendChild(msg);
-            scrollToBottom();
-            if (atendimentoAtivo) {
-                const formData = new FormData();
-                formData.append('chat_id', MEU_CHAT_ID);
-                formData.append('video', file);
-                formData.append('caption', `🆔 ${idConversa}\n👤 ${nomeLead || 'Anônimo'}\n🎥 VÍDEO`);
-                fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/sendVideo', { method: 'POST', body: formData });
-            }
-        };
-        reader.readAsDataURL(file);
-    } else {
-        const msg = document.createElement('div');
-        msg.className = 'message sent';
-        let fileIcon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>';
-        if (fileName.endsWith('.apk')) {
-            fileIcon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
-        } else if (fileName.endsWith('.zip') || fileName.endsWith('.rar')) {
-            fileIcon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>';
-        } else if (fileName.endsWith('.pdf')) {
-            fileIcon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>';
-        }
-        msg.innerHTML = '<div class="file-message">' +
-            '<div class="file-icon">' + fileIcon + '</div>' +            '<div class="file-info">' +
-            '<div class="file-name">' + fileName + '</div>' +
-            '<div class="file-size">' + fileSize + ' MB</div>' +
-            '</div>' +
-            '</div>' +
-            '<small>' + new Date().toLocaleTimeString() + ' ✓</small>';
-        document.getElementById('messages').appendChild(msg);
-        scrollToBottom();
-        if (atendimentoAtivo) {
-            const formData = new FormData();
-            formData.append('chat_id', MEU_CHAT_ID);
-            formData.append('document', file);
-            formData.append('caption', `🆔 ${idConversa}\n👤 ${nomeLead || 'Anônimo'}\n📎 ARQUIVO`);
-            fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/sendDocument', { method: 'POST', body: formData });
-        }
-    }
-    document.getElementById('file-input').value = '';
-};
-
-window.toggleRecording = async function() {
-    const btn = document.getElementById('mic-btn');
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-        mediaRecorder.stop();
-        btn.classList.remove('recording');
-        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        addAudioMessage(audioUrl, true);
-        if (atendimentoAtivo) {
-            const formData = new FormData();
-            formData.append('chat_id', MEU_CHAT_ID);
-            formData.append('audio', audioBlob, 'audio.webm');
-            formData.append('caption', `🆔 ${idConversa}\n👤 ${nomeLead || 'Anônimo'}\n🎤 ÁUDIO`);
-            fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/sendAudio', { method: 'POST', body: formData });
-        }
-        mediaRecorder = null;
-    } else {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-            audioChunks = [];
-            mediaRecorder.ondataavailable = function(event) {
-                if (event.data.size > 0) audioChunks.push(event.data);
-            };
-            mediaRecorder.start(1000);
-            btn.classList.add('recording');
-            btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
-        } catch (err) {
-            alert('Permita acesso ao microfone!');
-        }    }
-};
-
-async function verificarRespostas() {
+async function verificarRespostas(buscarAntigas = false) {
     if (!atendimentoAtivo || !pollingAtivo) return;
     try {
-        const res = await fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/getUpdates?offset=' + lastUpdateId + '&timeout=10');
+        const offset = buscarAntigas ? 0 : lastUpdateId;
+        const res = await fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/getUpdates?offset=' + offset + '&timeout=10&limit=100');
         const data = await res.json();
-        if (data.ok && data.result && data.result.length > 0) {
-            for (let i = 0; i < data.result.length; i++) {
+        if (data.ok && data.result && data.result.length > 0) {            for (let i = 0; i < data.result.length; i++) {
                 const update = data.result[i];
-                lastUpdateId = update.update_id + 1;
+                if (update.update_id >= lastUpdateId) lastUpdateId = update.update_id + 1;
                 const msg = update.message;
                 if (!msg || msg.chat.id != MEU_CHAT_ID) continue;
                 if (msg.reply_to_message) {
                     const replyMsg = msg.reply_to_message;
                     let idCliente = null;
-                    if (replyMsg.text) {
-                        const match = replyMsg.text.match(/conv_[0-9]+/);
-                        if (match) idCliente = match[0];
-                    }
-                    if (!idCliente && replyMsg.caption) {
-                        const match = replyMsg.caption.match(/conv_[0-9]+/);
-                        if (match) idCliente = match[0];
-                    }
+                    if (replyMsg.text) { const match = replyMsg.text.match(/conv_[0-9]+/); if (match) idCliente = match[0]; }
+                    if (!idCliente && replyMsg.caption) { const match = replyMsg.caption.match(/conv_[0-9]+/); if (match) idCliente = match[0]; }
                     if (idCliente === idConversa) {
+                        showTyping(false);
                         if (msg.text) {
-                            addMessage('<div class="atendente-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Atendente WN 777</div>' + msg.text, false, true);
-                        }
-                        if (msg.voice || msg.audio) {
-                            const fileId = msg.voice ? msg.voice.file_id : msg.audio.file_id;
-                            const fileRes = await fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/getFile?file_id=' + fileId);
-                            const fileData = await fileRes.json();
-                            if (fileData.ok && fileData.result) {
-                                const fileUrl = 'https://api.telegram.org/file/bot' + MEU_TOKEN + '/' + fileData.result.file_path;
-                                addAudioMessage(fileUrl, false);
-                            }
+                            addMessage('<div class="atendente-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Atendente WN 777</div>' + msg.text, false, true, 'read', true);
                         }
                         if (msg.photo && msg.photo.length > 0) {
                             const fileId = msg.photo[msg.photo.length - 1].file_id;
@@ -387,25 +462,12 @@ async function verificarRespostas() {
                                 const fileUrl = 'https://api.telegram.org/file/bot' + MEU_TOKEN + '/' + fileData.result.file_path;
                                 const msgDiv = document.createElement('div');
                                 msgDiv.className = 'message received';
-                                msgDiv.innerHTML = '<div class="atendente-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Atendente WN 777</div>' +
-                                    '<div class="media-message"><img src="' + fileUrl + '"></div>' +
-                                    '<small>' + new Date().toLocaleTimeString() + '</small>';
-                                document.getElementById('messages').appendChild(msgDiv);                                scrollToBottom();
-                            }
-                        }
-                        if (msg.video) {
-                            const fileId = msg.video.file_id;
-                            const fileRes = await fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/getFile?file_id=' + fileId);
-                            const fileData = await fileRes.json();
-                            if (fileData.ok && fileData.result) {
-                                const fileUrl = 'https://api.telegram.org/file/bot' + MEU_TOKEN + '/' + fileData.result.file_path;
-                                const msgDiv = document.createElement('div');
-                                msgDiv.className = 'message received';
-                                msgDiv.innerHTML = '<div class="atendente-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Atendente WN 777</div>' +
-                                    '<div class="media-message"><video controls src="' + fileUrl + '"></video></div>' +
-                                    '<small>' + new Date().toLocaleTimeString() + '</small>';
-                                document.getElementById('messages').appendChild(msgDiv);
+                                msgDiv.innerHTML = '<div class="atendente-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Atendente WN 777</div><div class="media-message"><img src="' + fileUrl + '"></div><small>' + new Date().toLocaleTimeString() + '</small>';
+                                const typing = document.getElementById('typing-indicator');
+                                document.getElementById('messages').insertBefore(msgDiv, typing);
                                 scrollToBottom();
+                                messageHistory.push({ content: fileUrl, sent: false, type: 'image', status: 'read', time: Date.now() });
+                                saveHistory();
                             }
                         }
                         if (msg.document) {
@@ -416,54 +478,50 @@ async function verificarRespostas() {
                             if (fileData.ok && fileData.result) {
                                 const fileUrl = 'https://api.telegram.org/file/bot' + MEU_TOKEN + '/' + fileData.result.file_path;
                                 const fileSize = (msg.document.file_size / 1024 / 1024).toFixed(2);
-                                let fileIcon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>';
-                                if (fileName.endsWith('.apk')) {
-                                    fileIcon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
-                                }
                                 const msgDiv = document.createElement('div');
                                 msgDiv.className = 'message received';
-                                msgDiv.innerHTML = '<div class="atendente-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Atendente WN 777</div>' +
-                                    '<div class="file-message">' +
-                                    '<div class="file-icon">' + fileIcon + '</div>' +
-                                    '<div class="file-info">' +
-                                    '<div class="file-name">' + fileName + '</div>' +
-                                    '<div class="file-size">' + fileSize + ' MB</div>' +
-                                    '</div>' +
-                                    '<a href="' + fileUrl + '" download class="btn-download"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Baixar</a>' +
-                                    '</div>' +
-                                    '<small>' + new Date().toLocaleTimeString() + '</small>';
-                                document.getElementById('messages').appendChild(msgDiv);
+                                msgDiv.innerHTML = '<div class="atendente-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Atendente WN 777</div><div class="file-message"><div class="file-icon">📎</div><div class="file-info"><div class="file-name">' + fileName + '</div><div class="file-size">' + fileSize + ' MB</div></div><a href="' + fileUrl + '" download class="btn-download">⬇ Baixar</a></div><small>' + new Date().toLocaleTimeString() + '</small>';
+                                const typing = document.getElementById('typing-indicator');
+                                document.getElementById('messages').insertBefore(msgDiv, typing);
                                 scrollToBottom();
+                                messageHistory.push({ content: fileName + '|' + fileSize, sent: false, type: 'file', status: 'read', time: Date.now() });
+                                saveHistory();
+                            }
+                        }
+                        if (msg.voice || msg.audio) {                            const fileId = msg.voice ? msg.voice.file_id : msg.audio.file_id;
+                            const fileRes = await fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/getFile?file_id=' + fileId);
+                            const fileData = await fileRes.json();
+                            if (fileData.ok && fileData.result) {
+                                const fileUrl = 'https://api.telegram.org/file/bot' + MEU_TOKEN + '/' + fileData.result.file_path;
+                                addAudioMessage(fileUrl, false, true);
                             }
                         }
                     }
                 }
             }
-        }    } catch (e) {}
-    if (atendimentoAtivo && pollingAtivo) {
-        setTimeout(verificarRespostas, 3000);
-    }
+            saveHistory();
+        }
+    } catch (e) {}
+    if (atendimentoAtivo && pollingAtivo) setTimeout(() => verificarRespostas(false), 3000);
 }
 
 function iniciarPolling() {
     if (pollingAtivo) return;
     pollingAtivo = true;
-    fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/getUpdates?offset=-1')
-        .then(r => r.json())
-        .then(data => {
-            if (data.ok && data.result && data.result.length > 0) {
-                lastUpdateId = data.result[data.result.length - 1].update_id + 1;
-            }
-            setTimeout(verificarRespostas, 1000);
-        })
-        .catch(e => {});
+    saveHistory();
+    verificarRespostas(true).then(() => { setTimeout(() => verificarRespostas(false), 1000); });
 }
 
 function enviar() {
     const input = document.getElementById('input');
     const msg = input.value.trim();
     if (!msg) return;
-    addMessage(msg, true, false);
+    if (msg.toLowerCase() === 'limpar' || msg.toLowerCase() === 'resetar') {
+        limparConversa();
+        input.value = '';
+        return;
+    }
+    addMessage(msg, true, false, 'sent', true);
     input.value = '';
     if (atendimentoAtivo) {
         enviarTelegram('CLIENTE', msg);
@@ -478,7 +536,8 @@ function responder(msg) {
         if (atendimentoAtivo) {
             atendimentoAtivo = false;
             pollingAtivo = false;
-            addMessage(MSG.atendimentoEncerrado || '🛑 Atendimento encerrado!', false, true);
+            showTyping(false);
+            addMessage(MSG.atendimentoEncerrado || '🛑 Atendimento encerrado!', false, true);            saveHistory();
         }
         return;
     }
@@ -488,53 +547,52 @@ function responder(msg) {
     }
     if (!nomeLead) {
         if (msg.length < 2) {
-            addMessage(MSG.pedirNome || 'Por favor, me diga seu nome.', false, true);            return;
+            showTyping(true);
+            setTimeout(() => { showTyping(false); addMessage(MSG.pedirNome || 'Por favor, me diga seu nome.', false, true); }, 1000);
+            return;
         }
         nomeLead = msg;
         enviarTelegram('NOVO_CLIENTE', nomeLead + ' se identificou');
-        let msgBoasVindas = (MSG.aposNome || 'Prazer, {nome}!').replace('{nome}', nomeLead);
-        addMessage(msgBoasVindas, false, true);
+        showTyping(true);
+        setTimeout(() => { showTyping(false); addMessage((MSG.aposNome || 'Prazer, {nome}!').replace('{nome}', nomeLead), false, true); }, 1500);
+        saveHistory();
         return;
     }
     if (msgLower.includes('atendente')) {
-        atendimentoAtivo = true;
-        addMessage(MSG.solicitouAtendente || '📞 Atendente solicitado!', false, true);
-        enviarTelegram('SOLICITACAO', 'Cliente solicitou atendimento');
-        iniciarPolling();
+        showTyping(true);
+        setTimeout(() => { showTyping(false); atendimentoAtivo = true; addMessage(MSG.solicitouAtendente || '📞 Atendente solicitado!', false, true); enviarTelegram('SOLICITACAO', 'Cliente solicitou atendimento'); iniciarPolling(); }, 1000);
         return;
     }
-    if (msgLower.includes('nubank')) {
-        addMessage(MSG.nubank || '💠 Nubank Editável - R$ 45', false, true);
-        return;
-    }
-    if (msgLower.includes('inter')) {
-        addMessage(MSG.inter || '🟠 Inter Editável - R$ 45', false, true);
-        return;
-    }
-    if (msgLower.includes('combo')) {
-        addMessage(MSG.combo || '🔥 Combo 3 Apps - R$ 99', false, true);
-        return;
-    }
-    addMessage((MSG.padrao || '{nome}, digite Nubank | Inter | Combo | Atendente').replace('{nome}', nomeLead), false, true);
+    if (msgLower.includes('nubank')) { showTyping(true); setTimeout(() => { showTyping(false); addMessage(MSG.nubank || '💠 Nubank Editável - R$ 45', false, true); }, 800); return; }
+    if (msgLower.includes('inter')) { showTyping(true); setTimeout(() => { showTyping(false); addMessage(MSG.inter || '🟠 Inter Editável - R$ 45', false, true); }, 800); return; }
+    if (msgLower.includes('combo')) { showTyping(true); setTimeout(() => { showTyping(false); addMessage(MSG.combo || '🔥 Combo 3 Apps - R$ 99', false, true); }, 800); return; }
+    showTyping(true);
+    setTimeout(() => { showTyping(false); addMessage((MSG.padrao || '{nome}, digite Nubank | Inter | Combo | Atendente').replace('{nome}', nomeLead), false, true); }, 1000);
 }
 
 window.comprarChatbot = function(produto) {
     atendimentoAtivo = true;
-    const msgCompra = (MSG.compraChatbot || '✅ Atendimento Ativado!').replace('{produto}', produto);
-    addMessage(msgCompra, false, true);
-    enviarTelegram('COMPRA_CHATBOT', 'Cliente quer comprar: ' + produto);
-    iniciarPolling();
+    showTyping(true);
+    setTimeout(() => { showTyping(false); addMessage((MSG.compraChatbot || '✅ Atendimento Ativado!').replace('{produto}', produto), false, true); enviarTelegram('COMPRA_CHATBOT', 'Cliente quer comprar: ' + produto); iniciarPolling(); }, 1000);
 };
-window.solicitarAtendente = function() {
-    responder('atendente');
-};
+window.solicitarAtendente = function() { responder('atendente'); };
 
-document.getElementById('input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') enviar();
-});
+document.getElementById('input').addEventListener('keypress', function(e) { if (e.key === 'Enter') enviar(); });
+document.getElementById('input').addEventListener('focus', () => scrollToBottom());
+
+loadHistory();
+if (atendimentoAtivo) iniciarPolling();
 
 setTimeout(function() {
-    addMessage((MSG.boasVindas || 'Olá! Bem-vindo ao PAINEL WN 777!\n\nQual é o seu nome?').replace('{botName}', BOT_NAME), false, true);
-}, 500);
+    if (messageHistory.length === 0) {
+        addMessage((MSG.boasVindas || 'Olá! Bem-vindo ao PAINEL WN 777!\n\nQual é o seu nome?').replace('{botName}', BOT_NAME), false, true);
+    }}, 500);
+
+function setAppHeight() {
+    document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+}
+window.addEventListener('resize', setAppHeight);
+setAppHeight();
 </script>
-</body></html>
+</body>
+</html>
