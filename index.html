@@ -137,15 +137,15 @@ const MEU_TOKEN = window.CONFIG?.telegramToken || '';
 const MEU_CHAT_ID = window.CONFIG?.telegramChatId || '';
 const MSG = window.CONFIG?.mensagens || {};
 
-// ID da conversa único por dispositivo
 let idConversa = localStorage.getItem('wn777_id_conv') || 'conv_' + Date.now();
 localStorage.setItem('wn777_id_conv', idConversa);
 
 let nomeLead = localStorage.getItem('wn777_nome_' + idConversa) || '';
 let atendimentoAtivo = localStorage.getItem('wn777_ativo_' + idConversa) === 'true';
 
-// ✅ MELHORIA: lastUpdateId GLOBAL (não por conversa) para sincronizar entre dispositivos
-let lastUpdateId = parseInt(localStorage.getItem('wn777_global_update') || '0');let pollingAtivo = false;
+// ✅ SOLUÇÃO: Cada dispositivo mantém seu próprio registro das mensagens já vistas
+let processedUpdates = JSON.parse(localStorage.getItem('wn777_processed_' + idConversa) || '[]');
+let lastCheckTime = parseInt(localStorage.getItem('wn777_last_check') || '0');let pollingAtivo = false;
 let pollingInterval = null;
 
 let messageHistory = JSON.parse(localStorage.getItem('wn777_history_' + idConversa) || '[]');
@@ -167,12 +167,15 @@ function saveHistory() {
     localStorage.setItem('wn777_history_' + idConversa, JSON.stringify(messageHistory));
     localStorage.setItem('wn777_nome_' + idConversa, nomeLead);
     localStorage.setItem('wn777_ativo_' + idConversa, atendimentoAtivo);
-    localStorage.setItem('wn777_global_update', lastUpdateId);
+    localStorage.setItem('wn777_processed_' + idConversa, JSON.stringify(processedUpdates));
+    localStorage.setItem('wn777_last_check', lastCheckTime);
 }
 
 function limparConversa() {
     messageHistory = [];
+    processedUpdates = [];
     localStorage.removeItem('wn777_history_' + idConversa);
+    localStorage.removeItem('wn777_processed_' + idConversa);
     const messages = document.getElementById('messages');
     const typing = document.getElementById('typing-indicator');
     messages.innerHTML = '';
@@ -191,10 +194,10 @@ function loadHistory() {
                 const parts = msg.content.split('|');
                 addFileMessage(parts[0], parts[1], msg.sent, true);
             } else {
-                addMessage(msg.content, msg.sent, true, msg.status);
-            }
+                addMessage(msg.content, msg.sent, true, msg.status);            }
         });
-        scrollToBottom(false);    }
+        scrollToBottom(false);
+    }
 }
 
 function addMessage(texto, enviado, html = false, status = 'sent', save = true) {
@@ -240,10 +243,10 @@ function updateMessageStatus(msgElement, status) {
     if (status === 'delivered') {
         icon.textContent = '✓✓';
         icon.classList.remove('read');
-    } else if (status === 'read') {
-        icon.textContent = '✓✓';
+    } else if (status === 'read') {        icon.textContent = '✓✓';
         icon.classList.add('read');
-    }}
+    }
+}
 
 function showTyping(show) {
     const typing = document.getElementById('typing-indicator');
@@ -289,10 +292,10 @@ window.enviarArquivo = function(event) {
         };
         reader.readAsDataURL(file);
     } else {
-        addFileMessage(fileName, fileSize, true, true);
-        if (atendimentoAtivo) enviarFileTelegram(file, 'document', 'ARQUIVO');
+        addFileMessage(fileName, fileSize, true, true);        if (atendimentoAtivo) enviarFileTelegram(file, 'document', 'ARQUIVO');
     }
-    document.getElementById('file-input').value = '';};
+    document.getElementById('file-input').value = '';
+};
 
 function addImageMessage(url, enviado, save = false) {
     const msg = document.createElement('div');
@@ -338,10 +341,10 @@ window.setSpeed = function(audioId, speed) {
         audio.playbackRate = speed;
         event.target.parentElement.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
         event.target.classList.add('active');
-    }
-};
+    }};
 
-window.toggleRecording = async function() {    const btn = document.getElementById('mic-btn');
+window.toggleRecording = async function() {
+    const btn = document.getElementById('mic-btn');
     if (mediaRecorder && mediaRecorder.state === 'recording') {
         mediaRecorder.stop();
         btn.classList.remove('recording');
@@ -387,10 +390,10 @@ function addAudioMessage(url, enviado, save = false) {
         const bar = document.createElement('div');
         bar.className = 'wave-bar';
         bar.style.height = (Math.random() * 20 + 10) + 'px';
-        wave.appendChild(bar);
-    }
+        wave.appendChild(bar);    }
     const time = document.createElement('span');
-    time.className = 'audio-time';    time.textContent = '0:00';
+    time.className = 'audio-time';
+    time.textContent = '0:00';
     const speed = document.createElement('div');
     speed.className = 'audio-speed';
     speed.innerHTML = '<button class="speed-btn active" onclick="setSpeed(\'' + audioId + '\', 1)">1x</button><button class="speed-btn" onclick="setSpeed(\'' + audioId + '\', 1.5)">1.5x</button><button class="speed-btn" onclick="setSpeed(\'' + audioId + '\', 2)">2x</button>';
@@ -436,13 +439,13 @@ function addAudioMessage(url, enviado, save = false) {
         saveHistory();
     }
 }
-
-// ✅ MELHORIA: Polling otimizado com intervalo menor e busca de mensagens antigas
+// ✅ SOLUÇÃO: Cada dispositivo busca TODAS as mensagens e filtra pelo seu ID
 async function verificarRespostas() {
-    if (!atendimentoAtivo || !pollingAtivo) return;    
+    if (!atendimentoAtivo || !pollingAtivo) return;
+    
     try {
-        // ✅ Timeout maior (30s) para reduzir requisições
-        const res = await fetch(`https://api.telegram.org/bot${MEU_TOKEN}/getUpdates?offset=${lastUpdateId}&timeout=30&limit=100`);
+        // Busca últimas 100 mensagens SEM usar offset (para não remover da fila)
+        const res = await fetch(`https://api.telegram.org/bot${MEU_TOKEN}/getUpdates?limit=100&timeout=30`);
         const data = await res.json();
         
         if (data.ok && data.result && data.result.length > 0) {
@@ -450,12 +453,10 @@ async function verificarRespostas() {
             
             for (let i = 0; i < data.result.length; i++) {
                 const update = data.result[i];
+                const updateId = update.update_id;
                 
-                // ✅ Atualiza lastUpdateId corretamente
-                if (update.update_id >= lastUpdateId) {
-                    lastUpdateId = update.update_id + 1;
-                    localStorage.setItem('wn777_global_update', lastUpdateId);
-                }
+                // ✅ Verifica se já processou esta mensagem
+                if (processedUpdates.includes(updateId)) continue;
                 
                 const msg = update.message;
                 if (!msg || msg.chat.id != MEU_CHAT_ID) continue;
@@ -473,22 +474,28 @@ async function verificarRespostas() {
                         if (match) idCliente = match[0];
                     }
                     
-                    // ✅ Verifica se é para este cliente
+                    // ✅ Verifica se é para ESTE cliente
                     if (idCliente === idConversa) {
                         showTyping(false);
                         novasMensagens++;
                         
+                        // Marca como processada
+                        processedUpdates.push(updateId);
+                        if (processedUpdates.length > 1000) {
+                            processedUpdates = processedUpdates.slice(-500);
+                        }
+                        
                         if (msg.text) {
                             addMessage('<div class="atendente-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Atendente WN 777</div>' + msg.text, false, true, 'read', true);
                         }
-                        
-                        if (msg.photo && msg.photo.length > 0) {
+                                                if (msg.photo && msg.photo.length > 0) {
                             const fileId = msg.photo[msg.photo.length - 1].file_id;
                             const fileRes = await fetch(`https://api.telegram.org/bot${MEU_TOKEN}/getFile?file_id=${fileId}`);
                             const fileData = await fileRes.json();
                             if (fileData.ok && fileData.result) {
                                 const fileUrl = `https://api.telegram.org/file/bot${MEU_TOKEN}/${fileData.result.file_path}`;
-                                const msgDiv = document.createElement('div');                                msgDiv.className = 'message received';
+                                const msgDiv = document.createElement('div');
+                                msgDiv.className = 'message received';
                                 msgDiv.innerHTML = '<div class="atendente-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Atendente WN 777</div><div class="media-message"><img src="' + fileUrl + '"></div><small>' + new Date().toLocaleTimeString() + '</small>';
                                 const typing = document.getElementById('typing-indicator');
                                 document.getElementById('messages').insertBefore(msgDiv, typing);
@@ -530,17 +537,15 @@ async function verificarRespostas() {
                 }
             }
             
-            // ✅ Se houve novas mensagens, salva imediatamente
-            if (novasMensagens > 0) {
-                saveHistory();
+            if (novasMensagens > 0) {                saveHistory();
             }
         }
     } catch (e) {
         console.error('Erro no polling:', e);
-    }    
-    // ✅ Continua o polling se ainda ativo
+    }
+    
     if (atendimentoAtivo && pollingAtivo) {
-        pollingInterval = setTimeout(verificarRespostas, 1000);
+        pollingInterval = setTimeout(verificarRespostas, 2000);
     }
 }
 
@@ -548,8 +553,6 @@ function iniciarPolling() {
     if (pollingAtivo) return;
     pollingAtivo = true;
     saveHistory();
-    
-    // ✅ Busca todas as mensagens pendentes primeiro
     verificarRespostas();
 }
 
@@ -583,10 +586,10 @@ function responder(msg) {
     const msgLower = msg.toLowerCase();
     if (msgLower === 'exit' || msgLower === 'sair') {
         if (atendimentoAtivo) {
-            atendimentoAtivo = false;
-            pararPolling();
+            atendimentoAtivo = false;            pararPolling();
             showTyping(false);
-            addMessage(MSG.atendimentoEncerrado || '🛑 Atendimento encerrado!', false, true);            saveHistory();
+            addMessage(MSG.atendimentoEncerrado || '🛑 Atendimento encerrado!', false, true);
+            saveHistory();
         }
         return;
     }
@@ -629,12 +632,9 @@ window.solicitarAtendente = function() { responder('atendente'); };
 document.getElementById('input').addEventListener('keypress', function(e) { if (e.key === 'Enter') enviar(); });
 document.getElementById('input').addEventListener('focus', () => scrollToBottom());
 
-// ✅ Limpa polling anterior ao carregar
 pararPolling();
-
 loadHistory();
 
-// ✅ Inicia polling se estava ativo
 if (atendimentoAtivo) {    iniciarPolling();
 }
 
@@ -644,7 +644,6 @@ setTimeout(function() {
     }
 }, 500);
 
-// ✅ Limpa polling quando fechar a página
 window.addEventListener('beforeunload', function() {
     pararPolling();
 });
