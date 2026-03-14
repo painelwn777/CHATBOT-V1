@@ -137,15 +137,19 @@ const MEU_TOKEN = window.CONFIG?.telegramToken || '';
 const MEU_CHAT_ID = window.CONFIG?.telegramChatId || '';
 const MSG = window.CONFIG?.mensagens || {};
 
+// ID da conversa único por dispositivo
 let idConversa = localStorage.getItem('wn777_id_conv') || 'conv_' + Date.now();
 localStorage.setItem('wn777_id_conv', idConversa);
 
 let nomeLead = localStorage.getItem('wn777_nome_' + idConversa) || '';
 let atendimentoAtivo = localStorage.getItem('wn777_ativo_' + idConversa) === 'true';
-let lastUpdateId = parseInt(localStorage.getItem('wn777_last_update') || '0');
-let pollingAtivo = false;
+
+// ✅ MELHORIA: lastUpdateId GLOBAL (não por conversa) para sincronizar entre dispositivos
+let lastUpdateId = parseInt(localStorage.getItem('wn777_global_update') || '0');let pollingAtivo = false;
+let pollingInterval = null;
 
 let messageHistory = JSON.parse(localStorage.getItem('wn777_history_' + idConversa) || '[]');
+
 document.getElementById('header-name').textContent = BOT_NAME;
 document.getElementById('profile-photo').src = BOT_PHOTO;
 
@@ -163,7 +167,7 @@ function saveHistory() {
     localStorage.setItem('wn777_history_' + idConversa, JSON.stringify(messageHistory));
     localStorage.setItem('wn777_nome_' + idConversa, nomeLead);
     localStorage.setItem('wn777_ativo_' + idConversa, atendimentoAtivo);
-    localStorage.setItem('wn777_last_update', lastUpdateId);
+    localStorage.setItem('wn777_global_update', lastUpdateId);
 }
 
 function limparConversa() {
@@ -190,11 +194,11 @@ function loadHistory() {
                 addMessage(msg.content, msg.sent, true, msg.status);
             }
         });
-        scrollToBottom(false);
-    }
+        scrollToBottom(false);    }
 }
 
-function addMessage(texto, enviado, html = false, status = 'sent', save = true) {    const msg = document.createElement('div');
+function addMessage(texto, enviado, html = false, status = 'sent', save = true) {
+    const msg = document.createElement('div');
     msg.className = 'message ' + (enviado ? 'sent' : 'received');
     
     let statusIcon = '';
@@ -239,11 +243,11 @@ function updateMessageStatus(msgElement, status) {
     } else if (status === 'read') {
         icon.textContent = '✓✓';
         icon.classList.add('read');
-    }
-}
+    }}
 
 function showTyping(show) {
-    const typing = document.getElementById('typing-indicator');    typing.style.display = show ? 'block' : 'none';
+    const typing = document.getElementById('typing-indicator');
+    typing.style.display = show ? 'block' : 'none';
     if (show) scrollToBottom();
 }
 
@@ -288,11 +292,11 @@ window.enviarArquivo = function(event) {
         addFileMessage(fileName, fileSize, true, true);
         if (atendimentoAtivo) enviarFileTelegram(file, 'document', 'ARQUIVO');
     }
-    document.getElementById('file-input').value = '';
-};
+    document.getElementById('file-input').value = '';};
 
 function addImageMessage(url, enviado, save = false) {
-    const msg = document.createElement('div');    msg.className = 'message sent';
+    const msg = document.createElement('div');
+    msg.className = 'message sent';
     msg.innerHTML = '<div class="media-message"><img src="' + url + '"></div><small>' + new Date().toLocaleTimeString() + ' <span class="status-icon">✓</span></small>';
     const typing = document.getElementById('typing-indicator');
     document.getElementById('messages').insertBefore(msg, typing);
@@ -337,11 +341,11 @@ window.setSpeed = function(audioId, speed) {
     }
 };
 
-window.toggleRecording = async function() {
-    const btn = document.getElementById('mic-btn');
+window.toggleRecording = async function() {    const btn = document.getElementById('mic-btn');
     if (mediaRecorder && mediaRecorder.state === 'recording') {
         mediaRecorder.stop();
-        btn.classList.remove('recording');        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
+        btn.classList.remove('recording');
+        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const audioUrl = URL.createObjectURL(audioBlob);
         addAudioMessage(audioUrl, true, true);
@@ -386,11 +390,11 @@ function addAudioMessage(url, enviado, save = false) {
         wave.appendChild(bar);
     }
     const time = document.createElement('span');
-    time.className = 'audio-time';
-    time.textContent = '0:00';
+    time.className = 'audio-time';    time.textContent = '0:00';
     const speed = document.createElement('div');
     speed.className = 'audio-speed';
-    speed.innerHTML = '<button class="speed-btn active" onclick="setSpeed(\'' + audioId + '\', 1)">1x</button><button class="speed-btn" onclick="setSpeed(\'' + audioId + '\', 1.5)">1.5x</button><button class="speed-btn" onclick="setSpeed(\'' + audioId + '\', 2)">2x</button>';    player.appendChild(btn);
+    speed.innerHTML = '<button class="speed-btn active" onclick="setSpeed(\'' + audioId + '\', 1)">1x</button><button class="speed-btn" onclick="setSpeed(\'' + audioId + '\', 1.5)">1.5x</button><button class="speed-btn" onclick="setSpeed(\'' + audioId + '\', 2)">2x</button>';
+    player.appendChild(btn);
     player.appendChild(wave);
     player.appendChild(time);
     container.appendChild(player);
@@ -433,35 +437,58 @@ function addAudioMessage(url, enviado, save = false) {
     }
 }
 
-async function verificarRespostas(buscarAntigas = false) {
-    if (!atendimentoAtivo || !pollingAtivo) return;
+// ✅ MELHORIA: Polling otimizado com intervalo menor e busca de mensagens antigas
+async function verificarRespostas() {
+    if (!atendimentoAtivo || !pollingAtivo) return;    
     try {
-        const offset = buscarAntigas ? 0 : lastUpdateId;
-        const res = await fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/getUpdates?offset=' + offset + '&timeout=10&limit=100');
+        // ✅ Timeout maior (30s) para reduzir requisições
+        const res = await fetch(`https://api.telegram.org/bot${MEU_TOKEN}/getUpdates?offset=${lastUpdateId}&timeout=30&limit=100`);
         const data = await res.json();
-        if (data.ok && data.result && data.result.length > 0) {            for (let i = 0; i < data.result.length; i++) {
+        
+        if (data.ok && data.result && data.result.length > 0) {
+            let novasMensagens = 0;
+            
+            for (let i = 0; i < data.result.length; i++) {
                 const update = data.result[i];
-                if (update.update_id >= lastUpdateId) lastUpdateId = update.update_id + 1;
+                
+                // ✅ Atualiza lastUpdateId corretamente
+                if (update.update_id >= lastUpdateId) {
+                    lastUpdateId = update.update_id + 1;
+                    localStorage.setItem('wn777_global_update', lastUpdateId);
+                }
+                
                 const msg = update.message;
                 if (!msg || msg.chat.id != MEU_CHAT_ID) continue;
+                
                 if (msg.reply_to_message) {
                     const replyMsg = msg.reply_to_message;
                     let idCliente = null;
-                    if (replyMsg.text) { const match = replyMsg.text.match(/conv_[0-9]+/); if (match) idCliente = match[0]; }
-                    if (!idCliente && replyMsg.caption) { const match = replyMsg.caption.match(/conv_[0-9]+/); if (match) idCliente = match[0]; }
+                    
+                    if (replyMsg.text) {
+                        const match = replyMsg.text.match(/conv_[0-9]+/);
+                        if (match) idCliente = match[0];
+                    }
+                    if (!idCliente && replyMsg.caption) {
+                        const match = replyMsg.caption.match(/conv_[0-9]+/);
+                        if (match) idCliente = match[0];
+                    }
+                    
+                    // ✅ Verifica se é para este cliente
                     if (idCliente === idConversa) {
                         showTyping(false);
+                        novasMensagens++;
+                        
                         if (msg.text) {
                             addMessage('<div class="atendente-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Atendente WN 777</div>' + msg.text, false, true, 'read', true);
                         }
+                        
                         if (msg.photo && msg.photo.length > 0) {
                             const fileId = msg.photo[msg.photo.length - 1].file_id;
-                            const fileRes = await fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/getFile?file_id=' + fileId);
+                            const fileRes = await fetch(`https://api.telegram.org/bot${MEU_TOKEN}/getFile?file_id=${fileId}`);
                             const fileData = await fileRes.json();
                             if (fileData.ok && fileData.result) {
-                                const fileUrl = 'https://api.telegram.org/file/bot' + MEU_TOKEN + '/' + fileData.result.file_path;
-                                const msgDiv = document.createElement('div');
-                                msgDiv.className = 'message received';
+                                const fileUrl = `https://api.telegram.org/file/bot${MEU_TOKEN}/${fileData.result.file_path}`;
+                                const msgDiv = document.createElement('div');                                msgDiv.className = 'message received';
                                 msgDiv.innerHTML = '<div class="atendente-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Atendente WN 777</div><div class="media-message"><img src="' + fileUrl + '"></div><small>' + new Date().toLocaleTimeString() + '</small>';
                                 const typing = document.getElementById('typing-indicator');
                                 document.getElementById('messages').insertBefore(msgDiv, typing);
@@ -470,13 +497,14 @@ async function verificarRespostas(buscarAntigas = false) {
                                 saveHistory();
                             }
                         }
+                        
                         if (msg.document) {
                             const fileId = msg.document.file_id;
                             const fileName = msg.document.file_name;
-                            const fileRes = await fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/getFile?file_id=' + fileId);
+                            const fileRes = await fetch(`https://api.telegram.org/bot${MEU_TOKEN}/getFile?file_id=${fileId}`);
                             const fileData = await fileRes.json();
                             if (fileData.ok && fileData.result) {
-                                const fileUrl = 'https://api.telegram.org/file/bot' + MEU_TOKEN + '/' + fileData.result.file_path;
+                                const fileUrl = `https://api.telegram.org/file/bot${MEU_TOKEN}/${fileData.result.file_path}`;
                                 const fileSize = (msg.document.file_size / 1024 / 1024).toFixed(2);
                                 const msgDiv = document.createElement('div');
                                 msgDiv.className = 'message received';
@@ -488,28 +516,49 @@ async function verificarRespostas(buscarAntigas = false) {
                                 saveHistory();
                             }
                         }
-                        if (msg.voice || msg.audio) {                            const fileId = msg.voice ? msg.voice.file_id : msg.audio.file_id;
-                            const fileRes = await fetch('https://api.telegram.org/bot' + MEU_TOKEN + '/getFile?file_id=' + fileId);
+                        
+                        if (msg.voice || msg.audio) {
+                            const fileId = msg.voice ? msg.voice.file_id : msg.audio.file_id;
+                            const fileRes = await fetch(`https://api.telegram.org/bot${MEU_TOKEN}/getFile?file_id=${fileId}`);
                             const fileData = await fileRes.json();
                             if (fileData.ok && fileData.result) {
-                                const fileUrl = 'https://api.telegram.org/file/bot' + MEU_TOKEN + '/' + fileData.result.file_path;
+                                const fileUrl = `https://api.telegram.org/file/bot${MEU_TOKEN}/${fileData.result.file_path}`;
                                 addAudioMessage(fileUrl, false, true);
                             }
                         }
                     }
                 }
             }
-            saveHistory();
+            
+            // ✅ Se houve novas mensagens, salva imediatamente
+            if (novasMensagens > 0) {
+                saveHistory();
+            }
         }
-    } catch (e) {}
-    if (atendimentoAtivo && pollingAtivo) setTimeout(() => verificarRespostas(false), 3000);
+    } catch (e) {
+        console.error('Erro no polling:', e);
+    }    
+    // ✅ Continua o polling se ainda ativo
+    if (atendimentoAtivo && pollingAtivo) {
+        pollingInterval = setTimeout(verificarRespostas, 1000);
+    }
 }
 
 function iniciarPolling() {
     if (pollingAtivo) return;
     pollingAtivo = true;
     saveHistory();
-    verificarRespostas(true).then(() => { setTimeout(() => verificarRespostas(false), 1000); });
+    
+    // ✅ Busca todas as mensagens pendentes primeiro
+    verificarRespostas();
+}
+
+function pararPolling() {
+    pollingAtivo = false;
+    if (pollingInterval) {
+        clearTimeout(pollingInterval);
+        pollingInterval = null;
+    }
 }
 
 function enviar() {
@@ -535,7 +584,7 @@ function responder(msg) {
     if (msgLower === 'exit' || msgLower === 'sair') {
         if (atendimentoAtivo) {
             atendimentoAtivo = false;
-            pollingAtivo = false;
+            pararPolling();
             showTyping(false);
             addMessage(MSG.atendimentoEncerrado || '🛑 Atendimento encerrado!', false, true);            saveHistory();
         }
@@ -580,13 +629,25 @@ window.solicitarAtendente = function() { responder('atendente'); };
 document.getElementById('input').addEventListener('keypress', function(e) { if (e.key === 'Enter') enviar(); });
 document.getElementById('input').addEventListener('focus', () => scrollToBottom());
 
+// ✅ Limpa polling anterior ao carregar
+pararPolling();
+
 loadHistory();
-if (atendimentoAtivo) iniciarPolling();
+
+// ✅ Inicia polling se estava ativo
+if (atendimentoAtivo) {    iniciarPolling();
+}
 
 setTimeout(function() {
     if (messageHistory.length === 0) {
         addMessage((MSG.boasVindas || 'Olá! Bem-vindo ao PAINEL WN 777!\n\nQual é o seu nome?').replace('{botName}', BOT_NAME), false, true);
-    }}, 500);
+    }
+}, 500);
+
+// ✅ Limpa polling quando fechar a página
+window.addEventListener('beforeunload', function() {
+    pararPolling();
+});
 
 function setAppHeight() {
     document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
@@ -595,4 +656,4 @@ window.addEventListener('resize', setAppHeight);
 setAppHeight();
 </script>
 </body>
-</html>
+    </html>
